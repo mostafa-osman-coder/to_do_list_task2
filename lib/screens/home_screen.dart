@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list_task2/widgets/input_section.dart';
-import 'package:to_do_list_task2/widgets/task_list.dart';
+import 'package:to_do_list_task2/widgets/ui_sections/input_section.dart';
+import 'package:to_do_list_task2/widgets/ui_sections/task_list.dart';
 import '../models/task.dart';
 import '../services/task_hive_service.dart';
 
