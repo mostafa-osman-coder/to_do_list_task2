@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:to_do_list_task2/models/task.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+void main() async {
+
+   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(TaskAdapter());
   runApp(const ToDoApp());
 }
 

@@ -12,7 +12,7 @@ class TaskList extends StatelessWidget {
     super.key,
     required this.tasks,
     required this.onToggle,
-    required this.onDelete,
+    required this.onDelete, required Future<void> Function(Task task) onUndo,
   });
 
   @override
@@ -20,7 +20,7 @@ class TaskList extends StatelessWidget {
     return Expanded(
       child: ListView.separated(
         itemCount: tasks.length,
-        separatorBuilder: (_, __) => const Divider(height: 0),
+        separatorBuilder: (_, __) => const Divider(height: 12),
         itemBuilder: (context, index) {
           final task = tasks[index];
           return TaskItem(

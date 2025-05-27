@@ -15,10 +15,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _storage = TaskStorage();
+  final _hiveService = TaskHiveService();
   final _controller = TextEditingController();
   List<Task> _tasks = [];
   TaskFilter _filter = TaskFilter.all;
+  // ignore: unused_field
+  Task? _recentlyDeleted;
 
   @override
   void initState() {
@@ -27,22 +29,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadTasks() async {
-    final tasks = await _storage.loadTasks();
+    final tasks = await _hiveService.getTasks();
     setState(() {
       _tasks = tasks;
       _sortTasks();
     });
   }
 
-  Future<void> _saveTasks() async {
-    await _storage.saveTasks(_tasks);
-  }
-
   void _sortTasks() {
     _tasks.sort((a, b) {
       if (a.isDone != b.isDone) return a.isDone ? 1 : -1;
-      return (a.dueDate ?? DateTime.now())
-          .compareTo(b.dueDate ?? DateTime.now());
+      return (a.dueDate ?? DateTime.now()).compareTo(b.dueDate ?? DateTime.now());
     });
   }
 
@@ -58,30 +55,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (date == null) return;
 
+    final task = Task(title: title, dueDate: date);
+    await _hiveService.addTask(task);
+
     setState(() {
-      _tasks.add(Task(title: title, dueDate: date));
+      _tasks.add(task);
       _controller.clear();
       _sortTasks();
     });
-    _saveTasks();
   }
 
-  void _toggleTask(Task task) {
-    final index = _tasks.indexOf(task);
-    if (index == -1) return;
-
-    setState(() {
-      _tasks[index].isDone = !_tasks[index].isDone;
-      _sortTasks();
-    });
-    _saveTasks();
+  Future<void> _toggleTask(Task task) async {
+    task.isDone = !task.isDone;
+    await _hiveService.updateTask(task);
+    _sortTasks();
+    setState(() {});
   }
 
-  void _deleteTask(Task task) {
+  Future<void> _deleteTask(Task task) async {
+    _recentlyDeleted = task;
+    await _hiveService.deleteTask(task);
+
     setState(() {
       _tasks.remove(task);
     });
-    _saveTasks();
+  }
+
+  Future<void> _undoDelete(Task task) async {
+    await _hiveService.addTask(task);
+    setState(() {
+      _tasks.add(task);
+      _sortTasks();
+      _recentlyDeleted = null;
+    });
   }
 
   List<Task> get _filteredTasks {
@@ -122,7 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
           TaskList(
             tasks: _filteredTasks,
             onToggle: _toggleTask,
-            onDelete: _deleteTask,
+            onDelete: (task) {
+              _deleteTask(task);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Task deleted'),
+                  action: SnackBarAction(
+                    label: 'Undo',
+                    onPressed: () => _undoDelete(task),
+                  ),
+                ),
+              );
+            },
+            onUndo: _undoDelete,
           ),
         ],
       ),
