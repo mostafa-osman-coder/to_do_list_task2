@@ -68,14 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _toggleTask(Task task) async {
     task.isDone = !task.isDone;
     await _hiveService.updateTask(task);
-    _sortTasks();
-    setState(() {});
+    setState(() {
+      _sortTasks();
+    });
   }
 
   Future<void> _deleteTask(Task task) async {
     _recentlyDeleted = task;
     await _hiveService.deleteTask(task);
-
     setState(() {
       _tasks.remove(task);
     });
@@ -128,18 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TaskList(
             tasks: _filteredTasks,
             onToggle: _toggleTask,
-            onDelete: (task) {
-              _deleteTask(task);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Task deleted'),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () => _undoDelete(task),
-                  ),
-                ),
-              );
-            },
+            onDelete: _deleteTask,
             onUndo: _undoDelete,
           ),
         ],
