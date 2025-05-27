@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_list_task2/widgets/task_item.dart';
 import '../models/task.dart';
 import '../services/task_storage.dart';
 
@@ -140,27 +141,12 @@ class _HomeScreenState extends State<HomeScreen> {
               separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (context, index) {
                 final task = filteredTasks[index];
-                return ListTile(
-                  title: Text(
-                    task.title,
-                    style: TextStyle(
-                      decoration: task.isDone
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                    ),
-                  ),
-                  subtitle: task.dueDate != null
-                      ? Text('Due: ${task.dueDate!.toLocal().toString().split(' ')[0]}')
-                      : null,
-                  leading: Checkbox(
-                    value: task.isDone,
-                    onChanged: (_) => _toggleTask(_tasks.indexOf(task)),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteTask(_tasks.indexOf(task)),
-                  ),
-                );
+                return  TaskItem(
+                         task: task,
+                         onToggle: () => _toggleTask(_tasks.indexOf(task)),
+                         onDelete: () => _deleteTask(_tasks.indexOf(task)),
+                         );
+
               },
             ),
           ),
