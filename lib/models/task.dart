@@ -15,8 +15,9 @@ class Task {
     return Task(
       title: json['title'],
       isDone: json['isDone'],
-      dueDate:
-          json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
+      dueDate: json['dueDate'] != null
+          ? DateTime.parse(json['dueDate'])
+          : null,
     );
   }
 }

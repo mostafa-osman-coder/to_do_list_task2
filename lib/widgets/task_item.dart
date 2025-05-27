@@ -15,24 +15,35 @@ class TaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        task.title,
-        style: TextStyle(
-          decoration:
-              task.isDone ? TextDecoration.lineThrough : TextDecoration.none,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          title: Text(
+            task.title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              decoration:
+                  task.isDone ? TextDecoration.lineThrough : TextDecoration.none,
+              color: task.isDone ? Colors.grey : Colors.black,
+            ),
+          ),
+          subtitle: task.dueDate != null
+              ? Text('Due: ${task.dueDate!.toLocal().toString().split(' ')[0]}')
+              : null,
+          leading: Checkbox(
+            value: task.isDone,
+            onChanged: (_) => onToggle(),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            onPressed: onDelete,
+          ),
         ),
-      ),
-      subtitle: task.dueDate != null
-          ? Text('Due: ${task.dueDate!.toLocal().toString().split(' ')[0]}')
-          : null,
-      leading: Checkbox(
-        value: task.isDone,
-        onChanged: (_) => onToggle(),
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: onDelete,
       ),
     );
   }

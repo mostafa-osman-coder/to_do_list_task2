@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list_task2/widgets/task_item.dart';
 import '../models/task.dart';
 import '../services/task_storage.dart';
+import '../widgets/task_item.dart';
 
 enum TaskFilter { all, pending }
 
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('To-Do List'),
         actions: [
           PopupMenuButton<TaskFilter>(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_alt_outlined),
             onSelected: (value) {
               setState(() {
                 _filter = value;
@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context) => const [
               PopupMenuItem(
                 value: TaskFilter.all,
-                child: Text('Show All'),
+                child: Text('All Tasks'),
               ),
               PopupMenuItem(
                 value: TaskFilter.pending,
@@ -115,38 +115,41 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     decoration: const InputDecoration(
-                      hintText: 'Enter a new task',
-                      border: OutlineInputBorder(),
+                      hintText: 'Add a new task...',
+                      prefixIcon: Icon(Icons.task_alt),
                     ),
                   ),
                 ),
                 const SizedBox(width: 10),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => _addTask(_controller.text),
-                  child: const Text('Add'),
-                )
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: ListView.separated(
               itemCount: filteredTasks.length,
-              separatorBuilder: (_, __) => const Divider(),
+              separatorBuilder: (_, __) => const Divider(height: 0),
               itemBuilder: (context, index) {
                 final task = filteredTasks[index];
-                return  TaskItem(
-                         task: task,
-                         onToggle: () => _toggleTask(_tasks.indexOf(task)),
-                         onDelete: () => _deleteTask(_tasks.indexOf(task)),
-                         );
-
+                return TaskItem(
+                  task: task,
+                  onToggle: () => _toggleTask(_tasks.indexOf(task)),
+                  onDelete: () => _deleteTask(_tasks.indexOf(task)),
+                );
               },
             ),
           ),
