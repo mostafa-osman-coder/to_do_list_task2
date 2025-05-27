@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_list_task2/widgets/input_section.dart';
+import 'package:to_do_list_task2/widgets/task_list.dart';
 import '../models/task.dart';
 import '../services/task_storage.dart';
-import '../widgets/task_item.dart';
+
 
 enum TaskFilter { all, pending }
 
@@ -13,8 +15,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TaskStorage _storage = TaskStorage();
-  final TextEditingController _controller = TextEditingController();
+  final _storage = TaskStorage();
+  final _controller = TextEditingController();
   List<Task> _tasks = [];
   TaskFilter _filter = TaskFilter.all;
 
@@ -38,36 +40,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _sortTasks() {
     _tasks.sort((a, b) {
-      if (a.isDone != b.isDone) {
-        return a.isDone ? 1 : -1;
-      } else {
-        return (a.dueDate ?? DateTime.now())
-            .compareTo(b.dueDate ?? DateTime.now());
-      }
+      if (a.isDone != b.isDone) return a.isDone ? 1 : -1;
+      return (a.dueDate ?? DateTime.now())
+          .compareTo(b.dueDate ?? DateTime.now());
     });
   }
 
-  void _addTask(String title) async {
+  Future<void> _addTask(String title) async {
     if (title.trim().isEmpty) return;
 
-    final selectedDate = await showDatePicker(
+    final date = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
-    if (selectedDate == null) return;
+    if (date == null) return;
 
     setState(() {
-      _tasks.add(Task(title: title, dueDate: selectedDate));
+      _tasks.add(Task(title: title, dueDate: date));
       _controller.clear();
       _sortTasks();
     });
     _saveTasks();
   }
 
-  void _toggleTask(int index) {
+  void _toggleTask(Task task) {
+    final index = _tasks.indexOf(task);
+    if (index == -1) return;
+
     setState(() {
       _tasks[index].isDone = !_tasks[index].isDone;
       _sortTasks();
@@ -75,30 +77,29 @@ class _HomeScreenState extends State<HomeScreen> {
     _saveTasks();
   }
 
-  void _deleteTask(int index) {
+  void _deleteTask(Task task) {
     setState(() {
-      _tasks.removeAt(index);
+      _tasks.remove(task);
     });
     _saveTasks();
   }
 
+  List<Task> get _filteredTasks {
+    if (_filter == TaskFilter.pending) {
+      return _tasks.where((t) => !t.isDone).toList();
+    }
+    return _tasks;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredTasks = _filter == TaskFilter.pending
-        ? _tasks.where((t) => !t.isDone).toList()
-        : _tasks;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('To-Do List'),
         actions: [
           PopupMenuButton<TaskFilter>(
             icon: const Icon(Icons.filter_alt_outlined),
-            onSelected: (value) {
-              setState(() {
-                _filter = value;
-              });
-            },
+            onSelected: (value) => setState(() => _filter = value),
             itemBuilder: (context) => const [
               PopupMenuItem(
                 value: TaskFilter.all,
@@ -114,44 +115,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Add a new task...',
-                      prefixIcon: Icon(Icons.task_alt),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: () => _addTask(_controller.text),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                  ),
-                ),
-              ],
-            ),
+          InputSection(
+            controller: _controller,
+            onAdd: () => _addTask(_controller.text),
           ),
-          Expanded(
-            child: ListView.separated(
-              itemCount: filteredTasks.length,
-              separatorBuilder: (_, __) => const Divider(height: 0),
-              itemBuilder: (context, index) {
-                final task = filteredTasks[index];
-                return TaskItem(
-                  task: task,
-                  onToggle: () => _toggleTask(_tasks.indexOf(task)),
-                  onDelete: () => _deleteTask(_tasks.indexOf(task)),
-                );
-              },
-            ),
+          TaskList(
+            tasks: _filteredTasks,
+            onToggle: _toggleTask,
+            onDelete: _deleteTask,
           ),
         ],
       ),
